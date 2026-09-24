@@ -9,16 +9,18 @@ final class PetSoundPlayer {
     private let completion: AVAudioPlayer?
 
     init(assetURL: URL) {
-        func load(_ filename: String, volume: Float) -> AVAudioPlayer? {
-            let url = assetURL.deletingLastPathComponent().appendingPathComponent(filename)
+        func load(_ url: URL, volume: Float) -> AVAudioPlayer? {
             guard let player = try? AVAudioPlayer(contentsOf: url) else { return nil }
             player.volume = volume
             player.prepareToPlay()
             return player
         }
-        press = load(Self.filenames[0], volume: 0.6)
-        release = load(Self.filenames[1], volume: 0.6)
-        completion = load(Self.filenames[0], volume: 0.6)
+        let assets = assetURL.deletingLastPathComponent()
+        press = load(assets.appendingPathComponent(Self.filenames[0]), volume: 0.6)
+        release = load(assets.appendingPathComponent(Self.filenames[1]), volume: 0.6)
+        let notification = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Sounds/codex-notification.wav")
+        completion = load(notification, volume: 0.6) ?? press
     }
 
     func playPress() { play(press) }
