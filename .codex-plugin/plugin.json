@@ -1,0 +1,20 @@
+{
+  "name": "deepseek-girl",
+  "version": "0.1.0",
+  "description": "A lightweight macOS whale companion for Codex turn completions.",
+  "author": {
+    "name": "Local developer"
+  },
+  "interface": {
+    "displayName": "鲸鱼娘",
+    "shortDescription": "跟随 Codex，完成回合时冒个泡。",
+    "longDescription": "macOS 原生透明挂件。通过 Codex 插件 hook 接收会话开始与回合停止事件，不读取或扫描会话日志。",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": ["Interactive"],
+    "brandColor": "#536EA5",
+    "composerIcon": "./assets/deepseek-sticker.png",
+    "logo": "./assets/deepseek-sticker.png",
+    "defaultPrompt": "检查鲸鱼娘插件的运行状态。"
+  }
+}
