@@ -1,9 +1,10 @@
-# 고래 소녀 for Codex — 한국어 로컬 버전
+# 고래 소녀 for Codex — 한국어 포크
 
-Codex 데스크톱 창을 따라다니는 macOS 펫입니다. 이 체크아웃은
-[tommy0103/deepseek-girl-plugin](https://github.com/tommy0103/deepseek-girl-plugin)의
-`3b02c8e43225f1f65ee13447b3c5bb9d5c87874b`에서 만든 로컬 변경판입니다.
-원본 GitHub 저장소에는 이 한국어 변경이 포함되어 있지 않습니다.
+Codex 데스크톱 창을 따라다니는 macOS 펫입니다.
+이 저장소는 [tommy0103/deepseek-girl-plugin](https://github.com/tommy0103/deepseek-girl-plugin)의
+`3b02c8e43225f1f65ee13447b3c5bb9d5c87874b`를 기반으로 만든 한국어 포크입니다.
+[sgu11/deepseek-girl-plugin](https://github.com/sgu11/deepseek-girl-plugin)의 `main`에서
+한국어 대사와 메뉴, 창 모서리 정렬, 클릭 애니메이션 중 사용량 말풍선 위치 고정을 관리합니다.
 
 ## 대사와 조작
 
@@ -50,7 +51,15 @@ Codex CLI에 ChatGPT 계정으로 로그인해야 합니다. API 키 방식에�
 ## 빌드와 로컬 설치
 
 macOS, Xcode Command Line Tools, `python3`, 로그인된 Codex CLI가 필요합니다.
-이 소스 체크아웃에서 실행합니다.
+새로 설치하는 경우 포크를 내려받습니다. 해당 경로에 기존 체크아웃이 있으면
+그 저장소에서 업데이트하고 빌드하세요.
+
+```sh
+git clone https://github.com/sgu11/deepseek-girl-plugin.git ~/.codex/plugins/deepseek-girl
+cd ~/.codex/plugins/deepseek-girl
+```
+
+소스 체크아웃에서 실행합니다.
 
 ```sh
 ./scripts/build.sh
