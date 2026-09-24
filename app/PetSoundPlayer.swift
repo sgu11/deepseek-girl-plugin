@@ -18,7 +18,7 @@ final class PetSoundPlayer {
         }
         press = load(Self.filenames[0], volume: 0.6)
         release = load(Self.filenames[1], volume: 0.6)
-        completion = load(Self.filenames[2], volume: 1.0)
+        completion = load(Self.filenames[0], volume: 0.6)
     }
 
     func playPress() { play(press) }
