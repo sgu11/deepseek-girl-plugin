@@ -77,24 +77,24 @@ final class QuotaBubblePanel: NSPanel {
         renderKey = key
 
         let windows = snapshot?.codexWindows(now: now) ?? []
-        let height: CGFloat = windows.isEmpty ? 102 : 68 + CGFloat(windows.count) * 60
+        let height: CGFloat = windows.isEmpty ? 122 : 88 + CGFloat(windows.count) * 60
         setContentSize(NSSize(width: Self.bubbleWidth, height: height))
         root.subviews.forEach { $0.removeFromSuperview() }
 
-        root.addSubview(makeLabel(message ?? "✦ Codex 余量", size: 16, weight: .semibold,
+        root.addSubview(makeLabel(message ?? "✦ Codex 잔여 한도", size: 16, weight: .semibold,
                                   color: Palette.ink,
-                                  frame: NSRect(x: 12, y: height - 43,
-                                                width: Self.bubbleWidth - 24, height: 23),
-                                  alignment: .center))
+                                  frame: NSRect(x: 12, y: height - 63,
+                                                width: Self.bubbleWidth - 24, height: 43),
+                                  alignment: .center, lines: 2))
 
         if windows.isEmpty {
             let status = snapshot?.statusText(now: now, isRefreshing: isRefreshing)
-                ?? (isRefreshing ? "正在读取 Codex 用量…" : "余量暂不可用，请稍后刷新")
+                ?? (isRefreshing ? "Codex 사용량 확인 중…" : "한도를 확인할 수 없습니다")
             root.addSubview(makeLabel(status, size: 11, weight: .medium,
                                       color: Palette.muted,
-                                      frame: NSRect(x: 16, y: 23,
-                                                    width: Self.bubbleWidth - 32, height: 19),
-                                      alignment: .center))
+                                      frame: NSRect(x: 16, y: 14,
+                                                    width: Self.bubbleWidth - 32, height: 34),
+                                      alignment: .center, lines: 2))
         } else {
             for (index, window) in windows.enumerated() {
                 addRow(window, index: index, height: height, now: now)
@@ -103,11 +103,11 @@ final class QuotaBubblePanel: NSPanel {
     }
 
     private func addRow(_ window: QuotaWindow, index: Int, height: CGFloat, now: Date) {
-        let labelY = height - 77 - CGFloat(index) * 60
+        let labelY = height - 97 - CGFloat(index) * 60
         root.addSubview(makeLabel("Codex · \(window.label)", size: 11, weight: .medium,
                                   color: Palette.ink,
                                   frame: NSRect(x: 16, y: labelY, width: 94, height: 18)))
-        root.addSubview(makeLabel("剩余 \(window.remainingText)", size: 12, weight: .semibold,
+        root.addSubview(makeLabel("\(window.remainingText) 남음", size: 12, weight: .semibold,
                                   color: Palette.ink,
                                   frame: NSRect(x: 105, y: labelY - 1,
                                                 width: Self.bubbleWidth - 121, height: 20),
@@ -129,7 +129,7 @@ final class QuotaBubblePanel: NSPanel {
             track.addSubview(fill)
         }
 
-        let reset = window.resetText(now: now) ?? "重置时间未提供"
+        let reset = window.resetText(now: now) ?? "재설정 시간 정보 없음"
         root.addSubview(makeLabel(reset, size: 10.5, weight: .regular,
                                   color: Palette.muted,
                                   frame: NSRect(x: 16, y: labelY - 35,
@@ -138,14 +138,23 @@ final class QuotaBubblePanel: NSPanel {
 
     private func makeLabel(_ text: String, size: CGFloat, weight: NSFont.Weight,
                            color: NSColor, frame: NSRect,
-                           alignment: NSTextAlignment = .left) -> NSTextField {
+                           alignment: NSTextAlignment = .left, lines: Int = 1) -> NSTextField {
         let field = NSTextField(labelWithString: text)
         field.frame = frame
         field.font = NSFont.systemFont(ofSize: size, weight: weight)
         field.textColor = color
         field.alignment = alignment
-        field.usesSingleLineMode = true
-        field.lineBreakMode = .byTruncatingTail
+        field.usesSingleLineMode = lines == 1
+        field.maximumNumberOfLines = lines
+        field.lineBreakMode = lines == 1 ? .byTruncatingTail : .byWordWrapping
+        if lines > 1 {
+            let measured = (text as NSString).boundingRect(
+                with: frame.size, options: [.usesLineFragmentOrigin, .usesFontLeading],
+                attributes: [.font: field.font!])
+            let height = min(frame.height, ceil(measured.height) + 2)
+            field.frame = NSRect(x: frame.minX, y: frame.minY + floor((frame.height - height) / 2),
+                                 width: frame.width, height: height)
+        }
         return field
     }
 }

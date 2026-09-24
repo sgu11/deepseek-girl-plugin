@@ -22,12 +22,12 @@ struct QuotaSnapshotTests {
         precondition(snapshot.usable(now: now))
         precondition(snapshot.menuRows(now: now).count == 2)
         precondition(snapshot.codexWindows(now: now).count == 2)
-        precondition(snapshot.menuRows(now: now)[0].contains("7天 剩余 4%"))
-        precondition(snapshot.menuRows(now: now)[1].contains("5h 剩余 50%"))
+        precondition(snapshot.menuRows(now: now)[0].contains("7일 · 4% 남음"))
+        precondition(snapshot.menuRows(now: now)[1].contains("5시간 · 50% 남음"))
         precondition(!snapshot.menuRows(now: now).joined().contains("Other"))
         precondition(!snapshot.usable(now: now.addingTimeInterval(601)))
         precondition(snapshot.codexWindows(now: now.addingTimeInterval(601)).isEmpty)
-        precondition(snapshot.statusText(now: now.addingTimeInterval(601)).contains("已过期"))
+        precondition(snapshot.statusText(now: now.addingTimeInterval(601)).contains("만료"))
 
         try Data("""
         {"schema":1,"status":"ok","fetchedAt":1790160000,"windows":[
@@ -36,7 +36,7 @@ struct QuotaSnapshotTests {
         """.utf8).write(to: file)
         let otherOnly = try XCTUnwrap(QuotaSnapshot.load(from: directory))
         precondition(otherOnly.codexWindows(now: now).isEmpty)
-        precondition(otherOnly.menuRows(now: now) == ["暂未返回 Codex 限额"])
+        precondition(otherOnly.menuRows(now: now) == ["Codex 한도가 표시되지 않았습니다"])
         print("Quota snapshot tests passed")
     }
 

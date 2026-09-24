@@ -42,7 +42,8 @@ enum CodexWindowLocator {
             for: host, visibleFrame: visibleFrame(for: host), panelSize: panelSize, offset: offset
         )
         return WindowPlacement.anchored(origin, anchor: anchor, host: host,
-                                        size: panelSize, visibleFrame: visibleFrame(for: host))
+                                        size: panelSize, visibleFrame: visibleFrame(for: host),
+                                        attachment: WhalePanel.attachmentBounds(mirrored: anchor.horizontal == .left))
     }
 
     static func offset(for currentOrigin: NSPoint, host: NSRect, panelSize: NSSize) -> NSPoint {
@@ -52,9 +53,16 @@ enum CodexWindowLocator {
         )
     }
 
-    static func snapped(_ origin: NSPoint, host: NSRect, panelSize: NSSize) -> SnapResult {
-        WindowPlacement.snapped(origin, host: host, size: panelSize,
-                                visibleFrame: visibleFrame(for: host))
+    static func snapped(_ origin: NSPoint, host: NSRect, panelSize: NSSize,
+                        mirrored: Bool) -> SnapResult {
+        let visible = visibleFrame(for: host)
+        let result = WindowPlacement.snapped(origin, host: host, size: panelSize,
+            visibleFrame: visible, attachment: WhalePanel.attachmentBounds(mirrored: mirrored))
+        // Left docking mirrors the sprite; align the resulting visible edge.
+        return SnapResult(origin: WindowPlacement.anchored(origin, anchor: result.anchor,
+            host: host, size: panelSize, visibleFrame: visible,
+            attachment: WhalePanel.attachmentBounds(mirrored: result.anchor.horizontal == .left)),
+            anchor: result.anchor)
     }
 
     private static func visibleFrame(for host: NSRect) -> NSRect {

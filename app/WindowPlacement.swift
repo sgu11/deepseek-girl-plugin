@@ -34,41 +34,46 @@ enum WindowPlacement {
         return NSPoint(x: currentOrigin.x - anchor.x, y: currentOrigin.y - anchor.y)
     }
 
-    static func clamped(_ origin: NSPoint, size: NSSize, to visible: NSRect) -> NSPoint {
+    static func clamped(_ origin: NSPoint, size: NSSize, to visible: NSRect,
+                        attachment: NSRect? = nil) -> NSPoint {
+        let bounds = attachment ?? NSRect(origin: .zero, size: size)
         return NSPoint(
-            x: min(max(origin.x, visible.minX), visible.maxX - size.width),
-            y: min(max(origin.y, visible.minY), visible.maxY - size.height)
+            x: min(max(origin.x, visible.minX - bounds.minX), visible.maxX - bounds.maxX),
+            y: min(max(origin.y, visible.minY - bounds.minY), visible.maxY - bounds.maxY)
         )
     }
 
     static func anchored(_ origin: NSPoint, anchor: SnapAnchor, host: NSRect,
-                         size: NSSize, visibleFrame: NSRect) -> NSPoint {
+                         size: NSSize, visibleFrame: NSRect, attachment: NSRect? = nil) -> NSPoint {
+        let bounds = attachment ?? NSRect(origin: .zero, size: size)
         var result = origin
         switch anchor.horizontal {
-        case .left: result.x = host.minX
-        case .right: result.x = host.maxX - size.width
+        case .left: result.x = host.minX - bounds.minX
+        case .right: result.x = host.maxX - bounds.maxX
         case nil: break
         }
         switch anchor.vertical {
-        case .bottom: result.y = host.minY
-        case .top: result.y = host.maxY - size.height
+        case .bottom: result.y = host.minY - bounds.minY
+        case .top: result.y = host.maxY - bounds.maxY
         case nil: break
         }
-        return clamped(result, size: size, to: visibleFrame)
+        return clamped(result, size: size, to: visibleFrame, attachment: attachment)
     }
 
     static func snapped(_ origin: NSPoint, host: NSRect, size: NSSize,
-                        visibleFrame: NSRect, threshold: CGFloat = 28) -> SnapResult {
-        let leftDistance = abs(origin.x - host.minX)
-        let rightDistance = abs(origin.x + size.width - host.maxX)
-        let bottomDistance = abs(origin.y - host.minY)
-        let topDistance = abs(origin.y + size.height - host.maxY)
+                        visibleFrame: NSRect, threshold: CGFloat = 28,
+                        attachment: NSRect? = nil) -> SnapResult {
+        let bounds = attachment ?? NSRect(origin: .zero, size: size)
+        let leftDistance = abs(origin.x + bounds.minX - host.minX)
+        let rightDistance = abs(origin.x + bounds.maxX - host.maxX)
+        let bottomDistance = abs(origin.y + bounds.minY - host.minY)
+        let topDistance = abs(origin.y + bounds.maxY - host.maxY)
         let horizontal: SnapAnchor.Horizontal? = min(leftDistance, rightDistance) <= threshold
             ? (leftDistance <= rightDistance ? .left : .right) : nil
         let vertical: SnapAnchor.Vertical? = min(bottomDistance, topDistance) <= threshold
             ? (bottomDistance <= topDistance ? .bottom : .top) : nil
         let anchor = SnapAnchor(horizontal: horizontal, vertical: vertical)
         return SnapResult(origin: anchored(origin, anchor: anchor, host: host,
-                                          size: size, visibleFrame: visibleFrame), anchor: anchor)
+                                          size: size, visibleFrame: visibleFrame, attachment: attachment), anchor: anchor)
     }
 }

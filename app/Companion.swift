@@ -3,7 +3,7 @@ import Darwin
 import Foundation
 
 final class Companion: NSObject, NSApplicationDelegate {
-    private let completionText = "压力一只蓝色大肥鱼？"
+    private let completionText = "이 통통한 고래를 닦달한다고?"
     private struct StoredPosition: Codable {
         let x: Double
         let y: Double
@@ -29,7 +29,7 @@ final class Companion: NSObject, NSApplicationDelegate {
     private var lastWindowCheck = Date.distantPast
     private var lastHost: NSRect?
     private var offset = NSPoint.zero
-    private var anchor = SnapAnchor(horizontal: nil, vertical: nil)
+    private var anchor = SnapAnchor(horizontal: .right, vertical: .bottom)
 
     init(dataURL: URL, assetURL: URL) {
         self.dataURL = dataURL
@@ -117,7 +117,8 @@ final class Companion: NSObject, NSApplicationDelegate {
         case .dragEnded(let origin):
             guard let host = CodexWindowLocator.locate() ?? lastHost else { return }
             if settings.snapEnabled {
-                let result = CodexWindowLocator.snapped(origin, host: host, panelSize: WhalePanel.size)
+                let result = CodexWindowLocator.snapped(origin, host: host, panelSize: WhalePanel.size,
+                                                        mirrored: panel.isMirrored)
                 anchor = result.anchor
                 panel.setFrameOrigin(result.origin)
             } else {
@@ -127,6 +128,7 @@ final class Companion: NSObject, NSApplicationDelegate {
                 for: panel.frame.origin, host: host, panelSize: WhalePanel.size
             )
             panel.setMirrored(anchor.horizontal == .left)
+            panel.updateAttachment(host: host, anchor: anchor, cornerRadius: settings.cornerRadius)
             savePosition()
         case .showMenu(let point):
             showMenu(at: point)
@@ -147,31 +149,34 @@ final class Companion: NSObject, NSApplicationDelegate {
     }
 
     private func showMenu(at point: NSPoint) {
-        let menu = NSMenu(title: "鲸鱼娘")
-        let bubbles = NSMenuItem(title: "点击泡泡", action: #selector(toggleBubbles), keyEquivalent: "")
+        let menu = NSMenu(title: "고래 소녀")
+        let bubbles = NSMenuItem(title: "클릭 시 말풍선 표시", action: #selector(toggleBubbles), keyEquivalent: "")
         bubbles.target = self
         bubbles.state = settings.bubblesEnabled ? .on : .off
         menu.addItem(bubbles)
-        let edit = NSMenuItem(title: "编辑点击泡泡…", action: #selector(editBubbles), keyEquivalent: "")
+        let edit = NSMenuItem(title: "말풍선 대사 편집…", action: #selector(editBubbles), keyEquivalent: "")
         edit.target = self
         menu.addItem(edit)
-        let snap = NSMenuItem(title: "边缘吸附", action: #selector(toggleSnap), keyEquivalent: "")
+        let snap = NSMenuItem(title: "창 가장자리에 붙이기", action: #selector(toggleSnap), keyEquivalent: "")
         snap.target = self
         snap.state = settings.snapEnabled ? .on : .off
         menu.addItem(snap)
+        let radius = NSMenuItem(title: "모서리 곡률 조절…", action: #selector(editCornerRadius), keyEquivalent: "")
+        radius.target = self
+        menu.addItem(radius)
         menu.addItem(.separator())
-        let quotaItem = NSMenuItem(title: "Codex 订阅余量", action: nil, keyEquivalent: "")
-        let quotaMenu = NSMenu(title: "Codex 订阅余量")
-        for row in quota.snapshot?.menuRows(now: Date()) ?? ["读取中…"] {
+        let quotaItem = NSMenuItem(title: "Codex 사용 한도", action: nil, keyEquivalent: "")
+        let quotaMenu = NSMenu(title: "Codex 사용 한도")
+        for row in quota.snapshot?.menuRows(now: Date()) ?? ["불러오는 중…"] {
             let item = NSMenuItem(title: row, action: nil, keyEquivalent: "")
             item.isEnabled = false
             quotaMenu.addItem(item)
         }
         quotaMenu.addItem(.separator())
-        let showQuota = NSMenuItem(title: "在气泡中显示用量", action: #selector(showQuotaBubble), keyEquivalent: "")
+        let showQuota = NSMenuItem(title: "말풍선에 사용량 표시", action: #selector(showQuotaBubble), keyEquivalent: "")
         showQuota.target = self
         quotaMenu.addItem(showQuota)
-        let refreshQuota = NSMenuItem(title: "刷新余量", action: #selector(refreshQuota), keyEquivalent: "")
+        let refreshQuota = NSMenuItem(title: "한도 새로고침", action: #selector(refreshQuota), keyEquivalent: "")
         refreshQuota.target = self
         quotaMenu.addItem(refreshQuota)
         menu.addItem(quotaItem)
@@ -225,18 +230,44 @@ final class Companion: NSObject, NSApplicationDelegate {
                 savePosition()
             }
         }
+        if settings.snapEnabled, let host = lastHost {
+            let result = CodexWindowLocator.snapped(panel.frame.origin, host: host,
+                panelSize: WhalePanel.size, mirrored: panel.isMirrored)
+            anchor = result.anchor
+            panel.setFrameOrigin(result.origin)
+            panel.setMirrored(anchor.horizontal == .left)
+            offset = CodexWindowLocator.offset(for: panel.frame.origin, host: host, panelSize: WhalePanel.size)
+            savePosition()
+        }
+        panel.updateAttachment(host: lastHost, anchor: anchor, cornerRadius: settings.cornerRadius)
         settingsStore.save(settings)
+    }
+
+    @objc private func editCornerRadius() {
+        let alert = NSAlert()
+        alert.messageText = "모서리 곡률 조절"
+        alert.informativeText = "Codex 창의 둥근 모서리에 맞춰 주세요. 0은 직각, 기본값은 16입니다. (0~40)"
+        let field = NSTextField(string: String(format: "%g", settings.cornerRadius))
+        field.frame = NSRect(x: 0, y: 0, width: 120, height: 28)
+        alert.accessoryView = field
+        alert.addButton(withTitle: "적용")
+        alert.addButton(withTitle: "취소")
+        guard alert.runModal() == .alertFirstButtonReturn,
+              let radius = Double(field.stringValue), radius.isFinite, (0...40).contains(radius) else { return }
+        settings.cornerRadius = radius
+        settingsStore.save(settings)
+        panel.updateAttachment(host: lastHost, anchor: anchor, cornerRadius: radius)
     }
 
     @objc private func editBubbles() {
         let alert = NSAlert()
-        alert.messageText = "编辑点击泡泡"
-        alert.informativeText = "用 | 分隔不同泡泡。点击鲸鱼显示第一条，点击泡泡显示下一条。"
+        alert.messageText = "말풍선 대사 편집"
+        alert.informativeText = "대사는 | 로 구분해 주세요. 고래를 누르면 첫 대사, 말풍선을 누르면 다음 대사가 나옵니다."
         let field = NSTextField(string: settings.clickMessages.joined(separator: " | "))
         field.frame = NSRect(x: 0, y: 0, width: 360, height: 28)
         alert.accessoryView = field
-        alert.addButton(withTitle: "保存")
-        alert.addButton(withTitle: "取消")
+        alert.addButton(withTitle: "저장")
+        alert.addButton(withTitle: "취소")
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         let messages = field.stringValue.split(separator: "|", omittingEmptySubsequences: true)
             .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -280,6 +311,9 @@ final class Companion: NSObject, NSApplicationDelegate {
             panel.setMirrored(settings.snapEnabled && anchor.horizontal == .left)
             lastHost = host
         }
+        panel.updateAttachment(host: host,
+            anchor: settings.snapEnabled ? anchor : SnapAnchor(horizontal: nil, vertical: nil),
+            cornerRadius: settings.cornerRadius)
         if !panel.isVisible { panel.orderFrontRegardless() }
         updateQuotaBubble(now: now)
     }

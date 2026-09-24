@@ -1,20 +1,20 @@
 {
   "name": "deepseek-girl",
-  "version": "0.1.0",
-  "description": "A lightweight macOS whale companion for Codex turn completions.",
+  "version": "0.1.1",
+  "description": "Codex 작업 완료를 알려주는 macOS 고래 캐릭터.",
   "author": {
     "name": "Local developer"
   },
   "interface": {
-    "displayName": "鲸鱼娘",
-    "shortDescription": "跟随 Codex，完成回合时冒个泡。",
-    "longDescription": "macOS 原生透明挂件。通过 Codex 插件 hook 接收会话开始与回合停止事件，不读取或扫描会话日志。",
+    "displayName": "고래 소녀",
+    "shortDescription": "Codex 창을 따라다니며 작업 완료를 알려줍니다.",
+    "longDescription": "macOS 화면 위에 고래 캐릭터를 띄웁니다. Codex 플러그인 hook으로 세션 시작과 작업 완료를 감지하며 대화 기록은 읽지 않습니다.",
     "developerName": "Local developer",
     "category": "Productivity",
     "capabilities": ["Interactive"],
     "brandColor": "#536EA5",
     "composerIcon": "./assets/deepseek-sticker.png",
     "logo": "./assets/deepseek-sticker.png",
-    "defaultPrompt": "检查鲸鱼娘插件的运行状态。"
+    "defaultPrompt": "고래 소녀 플러그인의 실행 상태를 확인해 줘."
   }
 }

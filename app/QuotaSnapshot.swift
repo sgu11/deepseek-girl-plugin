@@ -11,12 +11,12 @@ struct QuotaWindow: Decodable {
 
     var label: String {
         if durationMins >= 1440 && durationMins % 1440 == 0 {
-            return "\(durationMins / 1440)天"
+            return "\(durationMins / 1440)일"
         }
         if durationMins >= 60 && durationMins % 60 == 0 {
-            return "\(durationMins / 60)h"
+            return "\(durationMins / 60)시간"
         }
-        return "\(durationMins)分钟"
+        return "\(durationMins)분"
     }
 
     var remainingText: String {
@@ -28,14 +28,18 @@ struct QuotaWindow: Decodable {
     func resetText(now: Date) -> String? {
         guard let resetsAt else { return nil }
         let remaining = Int(resetsAt - now.timeIntervalSince1970)
-        if remaining <= 0 { return "即将重置" }
+        if remaining <= 0 { return "곧 재설정" }
         if remaining >= 86_400 {
-            return "\(remaining / 86_400)天\((remaining % 86_400) / 3_600)小时后重置"
+            let days = remaining / 86_400
+            let hours = (remaining % 86_400) / 3_600
+            return hours > 0 ? "\(days)일 \(hours)시간 후 재설정" : "\(days)일 후 재설정"
         }
         if remaining >= 3_600 {
-            return "\(remaining / 3_600)小时\((remaining % 3_600) / 60)分后重置"
+            let hours = remaining / 3_600
+            let minutes = (remaining % 3_600) / 60
+            return minutes > 0 ? "\(hours)시간 \(minutes)분 후 재설정" : "\(hours)시간 후 재설정"
         }
-        return "\(max(1, remaining / 60))分钟后重置"
+        return "\(max(1, remaining / 60))분 후 재설정"
     }
 }
 
@@ -71,17 +75,17 @@ struct QuotaSnapshot: Decodable {
     }
 
     func statusText(now: Date, isRefreshing: Bool = false) -> String {
-        if isRefreshing { return "正在读取 Codex 用量…" }
+        if isRefreshing { return "Codex 사용량 확인 중…" }
         if status == "unavailable" {
             switch reason {
-            case "codex_not_found": return "未找到 Codex CLI"
-            case "account_unavailable": return "请用 ChatGPT 登录 Codex CLI"
-            case "no_windows": return "此账户没有可显示的 Codex 限额"
-            default: return "余量暂不可用，请稍后刷新"
+            case "codex_not_found": return "Codex CLI를 찾을 수 없음"
+            case "account_unavailable": return "Codex CLI에 ChatGPT로 로그인하세요"
+            case "no_windows": return "표시할 Codex 한도가 없습니다"
+            default: return "한도를 확인할 수 없습니다"
             }
         }
-        if usable(now: now) { return "暂未返回 Codex 限额" }
-        return "用量数据已过期，正在等待刷新"
+        if usable(now: now) { return "Codex 한도가 표시되지 않았습니다" }
+        return "사용량 정보가 만료되었습니다"
     }
 
     func menuRows(now: Date) -> [String] {
@@ -89,7 +93,7 @@ struct QuotaSnapshot: Decodable {
         guard !selected.isEmpty else { return [statusText(now: now)] }
         return selected.map { window in
             let reset = window.resetText(now: now).map { " · \($0)" } ?? ""
-            return "\(window.label) 剩余 \(window.remainingText)\(reset)"
+            return "\(window.label) · \(window.remainingText) 남음\(reset)"
         }
     }
 }

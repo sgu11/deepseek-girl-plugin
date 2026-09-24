@@ -19,7 +19,7 @@ struct QuotaBubblePreview {
         )
         let panel = QuotaBubblePanel()
         panel.show(
-            snapshot: snapshot, isRefreshing: false, message: "今天也辛苦啦。",
+            snapshot: snapshot, isRefreshing: false, message: "이 통통한 고래를 닦달한다고?",
             above: NSRect(x: -9_000, y: -9_000, width: 180, height: 180),
             in: NSRect(x: -10_000, y: -10_000, width: 1_200, height: 800), now: now
         )
