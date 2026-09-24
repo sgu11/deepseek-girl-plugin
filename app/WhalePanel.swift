@@ -28,6 +28,7 @@ private final class PetImageView: NSImageView {
 
 final class WhalePanel: NSPanel {
     static let size = NSSize(width: 255, height: 228)
+    private static let restingImageFrame = NSRect(x: 70, y: 0, width: 180, height: 180)
     // Alpha bounds of the bundled 610×610 sprite: x=45...610, y=10...610.
     // Preserve its original scale while ignoring transparent image padding.
     static func attachmentBounds(mirrored: Bool) -> NSRect {
@@ -43,13 +44,9 @@ final class WhalePanel: NSPanel {
     private(set) var isMirrored = false
     var onAction: ((WhaleAction) -> Void)?
     var isDragging: Bool { gesture?.moved == true }
-    var visualFrame: NSRect {
-        NSRect(
-            x: frame.minX + imageView.frame.minX,
-            y: frame.minY + imageView.frame.minY,
-            width: imageView.frame.width,
-            height: imageView.frame.height
-        )
+    // Follow the pet's position, never its press/release deformation.
+    var bubbleAnchorFrame: NSRect {
+        Self.restingImageFrame.offsetBy(dx: frame.minX, dy: frame.minY)
     }
 
     override var canBecomeKey: Bool { true }
@@ -65,7 +62,7 @@ final class WhalePanel: NSPanel {
         hostMask.cornerCurve = .continuous
         hostMask.masksToBounds = true
 
-        imageView = PetImageView(frame: NSRect(x: 70, y: 0, width: 180, height: 180))
+        imageView = PetImageView(frame: Self.restingImageFrame)
         imageView.image = NSImage(contentsOf: assetURL)
         imageView.imageScaling = .scaleProportionallyUpOrDown
         imageView.wantsLayer = true
@@ -247,7 +244,7 @@ final class WhalePanel: NSPanel {
     func setPressed(_ pressed: Bool) {
         let destination = pressed
             ? NSRect(x: 64, y: 0, width: 192, height: 168)
-            : NSRect(x: 70, y: 0, width: 180, height: 180)
+            : Self.restingImageFrame
         NSAnimationContext.runAnimationGroup { context in
             context.duration = pressed ? 0.1 : 0.23
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)

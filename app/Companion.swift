@@ -205,7 +205,7 @@ final class Companion: NSObject, NSApplicationDelegate {
         let visible = panel.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? panel.frame
         quotaBubble.show(snapshot: quota.snapshot, isRefreshing: quota.isRefreshing,
                          message: currentBubbleText(now: now),
-                         above: panel.visualFrame, in: visible, now: now)
+                         above: panel.bubbleAnchorFrame, in: visible, now: now)
     }
 
     private func updateQuotaBubble(now: Date) {
@@ -216,7 +216,7 @@ final class Companion: NSObject, NSApplicationDelegate {
         let visible = panel.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? panel.frame
         quotaBubble.updateIfVisible(snapshot: quota.snapshot, isRefreshing: quota.isRefreshing,
                                     message: currentBubbleText(now: now),
-                                    above: panel.visualFrame, in: visible, now: now)
+                                    above: panel.bubbleAnchorFrame, in: visible, now: now)
     }
 
     @objc private func toggleSnap() {
