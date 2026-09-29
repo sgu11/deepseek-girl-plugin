@@ -15,6 +15,7 @@
 
 ## 修改与验证
 
+- 发布本分支的新提交前，分别核对 author 与 committer 使用公开 GitHub 身份和 GitHub noreply 邮箱；保留上游作者的合法署名。仅在此仓库设置身份，不修改全局 Git 配置。
 - 在本源码目录编辑文件。将 `.build/`、`bin/` 和插件安装缓存视为生成或安装产物。
 - Swift 改动运行 `./scripts/build.sh` 和 `./scripts/test.sh`；Python hook 或用量逻辑改动运行 `./scripts/test.sh`。
 - 交互与音效改动分别说明自动测试和实际桌面验证的结果。
